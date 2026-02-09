@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / Helper
+.venv_new/
+venv/
+env/
+dist/
+build/
+*.egg-info/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment Variables
+.env
+
+# Logs
+*.log
+app.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+tmp/
