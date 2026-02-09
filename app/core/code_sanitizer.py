@@ -136,14 +136,18 @@ def sanitize_code(code: str, language: str) -> Tuple[bool, str]:
     
     patterns = DANGEROUS_PATTERNS.get(language, [])
     
+    backtick_safe_languages = {"javascript", "typescript"}
+    
     common_patterns = [
         (r'rm\s+-rf\s+/', "Shell command 'rm -rf' detected"),
         (r'chmod\s+777', "Dangerous chmod command detected"),
         (r'curl\s+.*\|.*sh', "Piped curl to shell detected"),
         (r'wget\s+.*\|.*sh', "Piped wget to shell detected"),
         (r'\$\(.*\)', "Shell command substitution detected"),
-        (r'`[^`]+`', "Backtick command execution detected"),
     ]
+    
+    if language not in backtick_safe_languages:
+        common_patterns.append((r'`[^`]+`', "Backtick command execution detected"))
     
     all_patterns = patterns + common_patterns
     
