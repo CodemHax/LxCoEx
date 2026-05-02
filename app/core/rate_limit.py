@@ -16,14 +16,16 @@ class RateLimiter:
         client_ip = request.client.host
         key = f"rate_limit:{client_ip}:{request.url.path}"
 
-        async with redis.pipeline() as pipe:
-            try:
-                await pipe.incr(key)
-                await pipe.expire(key, self.seconds)
-                result = await pipe.execute()
-                request_count = result[0]
-            except Exception:
-                return
+        try:
+            request_count = await redis.incr(key)
+            if request_count == 1:
+                await redis.expire(key, self.seconds)
+            else:
+                ttl = await redis.ttl(key)
+                if ttl == -1:
+                    await redis.expire(key, self.seconds)
+        except Exception:
+            return
 
         if request_count > self.times:
             raise HTTPException(
