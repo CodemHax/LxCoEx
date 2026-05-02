@@ -15,7 +15,8 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 - **Queued & sync execution** – Run code via a queue or wait for immediate results
 - **Code sharing** – Generate shareable URLs for snippets
 - **Language templates** – Starter templates for each language
-- **Security layer** – Code sanitizer to block dangerous operations
+- **Hardened sandbox** – Containerized execution with no network, non-root user, read-only rootfs, and resource limits
+- **Security layer** – Code sanitizer to block obvious dangerous operations before sandbox execution
 - **Rate limiting** – Protects the API from abuse
 - **Dark / light theme** – Toggleable UI theme
 - **AI error explanation** – Optional AI‑based explanations for errors (via Puter.js)
@@ -29,7 +30,7 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 | Technology   | Purpose                                      |
 |-------------|----------------------------------------------|
 | **FastAPI** | Modern async Python web framework            |
-| **Pyston**  | Code execution engine (Piston API client)    |
+| **Local Runtime Engine** | In-house compile/run pipeline     |
 | **MongoDB** | Store shared code snippets                   |
 | **Redis**   | Job queue, caching, and rate limiting        |
 | **Motor**   | Async MongoDB driver                         |
@@ -61,7 +62,7 @@ LiCoEx/
 │   │   ├── code_sanitizer.py      # Security: code validation
 │   │   ├── config.py              # Application settings
 │   │   ├── exceptions.py          # Custom exceptions
-│   │   ├── excute_engine.py       # Pyston execution wrapper
+│   │   ├── excute_engine.py       # Local execution engine
 │   │   ├── rate_limit.py          # Rate limiting dependency
 │   │   └── templates.py           # Code templates
 │   ├── crud/
@@ -103,7 +104,7 @@ LiCoEx/
 | `POST` | `/api/v1/core/execute-sync`  | Execute code and wait for result|
 | `GET`  | `/api/v1/core/job/{job_id}`  | Get job status / result         |
 | `GET`  | `/api/v1/core/queue/status`  | Get queue length / status       |
-| `GET`  | `/api/v1/core/get-runtimes`  | List supported runtimes         |
+| `GET`  | `/api/v1/core/get-runtimes`  | List local runtime availability |
 
 ### Templates
 
@@ -136,6 +137,9 @@ LiCoEx/
 # Clone the repository
 git clone https://github.com/yourusername/LiCoEx.git
 cd LiCoEx
+
+# Build the sandbox image used for isolated executions
+docker build -f Dockerfile.sandbox -t licoex-sandbox:latest .
 
 # Start the full stack (app + MongoDB + Redis)
 docker-compose up -d
@@ -176,7 +180,7 @@ docker-compose up -d
    Or minimal manual install:
 
    ```bash
-   pip install fastapi uvicorn motor redis pyston pydantic-settings
+   pip install fastapi uvicorn motor redis pydantic-settings
    ```
 
 4. **Configure environment variables**
@@ -189,6 +193,10 @@ docker-compose up -d
    MONGODB_URL=mongodb://localhost:27017
    MONGODB_DB_NAME=licoex_db
    REDIS_URL=redis://127.0.0.1:6379
+   EXECUTION_ENGINE=docker
+   EXECUTION_ALLOW_LOCAL=false
+   EXECUTION_REQUIRE_SANDBOX=true
+   EXECUTION_SANDBOX_IMAGE=licoex-sandbox:latest
    ```
 
 5. **Start MongoDB and Redis**
@@ -201,13 +209,21 @@ docker-compose up -d
    redis-server
    ```
 
-6. **Run the application**
+6. **Build the sandbox image**
+
+   ```bash
+   docker build -f Dockerfile.sandbox -t licoex-sandbox:latest .
+   ```
+
+7. **Run the application**
 
    ```bash
    uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
    ```
 
-7. **Open in your browser**
+   The app now fails closed at startup if Docker or the sandbox image is missing.
+
+8. **Open in your browser**
 
    ```text
    http://127.0.0.1:8000
@@ -227,13 +243,15 @@ docker-compose up -d
 | C           | GCC               | `.c`              |
 | C++         | G++               | `.cpp`            |
 
-> Exact runtimes / versions come from the Pyston (Piston) backend. You can query them via `/api/v1/core/get-runtimes`.
+> Exact runtime availability comes from the local machine or container. You can query it via `/api/v1/core/get-runtimes`.
 
 ---
 
 ## Security Features
 
 User code is passed through a sanitizer before execution to reduce risk.
+
+> Important: this project now prefers one Docker sandbox per request. Each run uses a fresh container, disables network access, drops Linux capabilities, applies CPU/memory/pid limits, and removes the container after completion.
 
 ### Python
 
@@ -287,6 +305,12 @@ These settings live in `app/core/config.py` and can be overridden via environmen
 | `MONGODB_URL`   | `mongodb://localhost:27017`   | MongoDB connection URL    |
 | `MONGODB_DB_NAME` | `licoex_db`                 | MongoDB database name     |
 | `REDIS_URL`     | `redis://localhost:6379`      | Redis connection URL      |
+| `EXECUTION_ENGINE` | `docker`                   | `docker` for sandboxed execution, `local` for fallback |
+| `EXECUTION_SANDBOX_IMAGE` | `licoex-sandbox:latest` | Sandbox container image |
+| `EXECUTION_DOCKER_BINARY` | `docker`            | Docker CLI binary path   |
+| `EXECUTION_SANDBOX_MEMORY` | `256m`             | Memory limit per sandbox |
+| `EXECUTION_SANDBOX_CPUS` | `1.0`                | CPU limit per sandbox    |
+| `EXECUTION_SANDBOX_PIDS_LIMIT` | `64`           | Process limit per sandbox |
 
 ---
 
@@ -334,7 +358,6 @@ This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE)
 
 ## Acknowledgments
 
-- [Piston](https://github.com/engineer-man/piston) – Underlying code execution engine
 - [FastAPI](https://fastapi.tiangolo.com/) – Web framework
 - [CodeMirror](https://codemirror.net/) – In‑browser code editor
 - [Puter.js](https://puter.com/) – AI / assistant integration

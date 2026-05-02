@@ -3,6 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
 from app.core.config import settings
+from app.core.execution_policy import normalize_language
 from app.core.rate_limit import RateLimiter
 from app.core.excute_engine import get_runtime
 from app.core.code_sanitizer import sanitize_code, get_blocked_modules, get_blocked_functions
@@ -137,13 +138,17 @@ async def get_runtimes():
 
 @ex_route.get("/template/{language}")
 async def get_language_template(language: str):
-    template = get_template(language)
-    if not template:
-        raise HTTPException(status_code=404, detail=f"No template found for language: {language}")
-    return JSONResponse({
-        "language": language,
-        "template": template
-    })
+    try:
+        canonical_language = normalize_language(language)
+        template = get_template(canonical_language)
+        if not template:
+            raise HTTPException(status_code=404, detail=f"No template found for language: {canonical_language}")
+        return JSONResponse({
+            "language": canonical_language,
+            "template": template
+        })
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @ex_route.get("/templates")

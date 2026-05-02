@@ -10,6 +10,7 @@ from app.api.v1.excuter_endpoint import ex_route
 from app.api.v1.snippet_endpoint import snippet_route
 from app.db.mongo import MONGODatabase
 from app.db.redis import RedisDB
+from app.core.excute_engine import validate_execution_environment
 from app.services.logger import logger
 from app.services.execution_queue import ExecutionQueue
 
@@ -20,6 +21,9 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up...")
+    validate_execution_environment()
+    logger.info("Execution environment validated")
+
     mongo_client = await MONGODatabase.connect()
     logger.info("Connected to MongoDB")
 

@@ -1,36 +1,18 @@
-version: '3.8'
-
 services:
   app:
     build: .
     ports:
       - "8000:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      - MONGODB_URL=mongodb://mongo:27017
-      - MONGODB_DB_NAME=licoex_db
-      - REDIS_URL=redis://redis:6379
-    depends_on:
-      - mongo
-      - redis
-    restart: unless-stopped
-
-  mongo:
-    image: mongo:7
-    ports:
-      - "27017:27017"
+      - MONGODB_URL=${MONGODB_URL}
+      - MONGODB_DB_NAME=${MONGODB_DB_NAME:-licoex_db}
+      - REDIS_URL=${REDIS_URL}
+      - EXECUTION_SANDBOX_IMAGE=${EXECUTION_SANDBOX_IMAGE:-licoex-sandbox:latest}
+      - EXECUTION_SANDBOX_MEMORY=${EXECUTION_SANDBOX_MEMORY:-256m}
+      - EXECUTION_SANDBOX_CPUS=${EXECUTION_SANDBOX_CPUS:-1.0}
+      - EXECUTION_SANDBOX_PIDS_LIMIT=${EXECUTION_SANDBOX_PIDS_LIMIT:-64}
     volumes:
-      - mongo_data:/data/db
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-
-volumes:
-  mongo_data:
-  redis_data:
-

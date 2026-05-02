@@ -1,0 +1,19 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    default-jdk-headless \
+    gcc \
+    g++ \
+    golang-go \
+    nodejs \
+    npm \
+    && npm install -g typescript \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /sandbox
+
+COPY sandbox/runner.py /sandbox/runner.py
+
+RUN mkdir -p /input /workspace /tmp && chown -R 65534:65534 /input /workspace /sandbox /tmp
+
+USER 65534:65534

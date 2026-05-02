@@ -1,6 +1,6 @@
-from typing import Dict
+from app.core.execution_policy import normalize_language
 
-CODE_TEMPLATES: Dict[str, str] = {
+CODE_TEMPLATES: dict[str, str] = {
     "python": '''def greet(name):
     return f"Hello, {name}!"
 
@@ -80,13 +80,12 @@ console.log("Happy coding!");
 
 
 def get_template(language: str) -> str:
-    language = language.lower().strip()
-    return CODE_TEMPLATES.get(language, CODE_TEMPLATES.get("python", ""))
+    try:
+        language = normalize_language(language)
+    except ValueError:
+        return ""
+    return CODE_TEMPLATES.get(language, "")
 
 
-def get_all_templates() -> Dict[str, str]:
+def get_all_templates() -> dict[str, str]:
     return CODE_TEMPLATES
-
-
-def get_available_languages() -> list:
-    return list(CODE_TEMPLATES.keys())

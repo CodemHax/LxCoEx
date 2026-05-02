@@ -1,3 +1,4 @@
+
 class CodeExecutionError(Exception):
     message = "Code execution error"
     status_code = 400

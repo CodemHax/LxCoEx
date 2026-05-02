@@ -5,6 +5,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 
 from app.db.redis import RedisDB
+from app.core.execution_policy import normalize_language, validate_stdin, validate_timeout
 from app.core.excute_engine import execute_code
 from app.core.code_sanitizer import sanitize_code
 from app.services.logger import logger
@@ -47,6 +48,9 @@ class ExecutionQueue:
     @classmethod
     async def add_job(cls, code: str, language: str, timeout: int, stdin: Optional[str] = None) -> str:
         redis = await RedisDB.connect()
+        language = normalize_language(language)
+        timeout = validate_timeout(timeout)
+        stdin = validate_stdin(stdin)
         
         job_id = str(uuid.uuid4())
         job_data = {

@@ -1,6 +1,6 @@
 import re
-from typing import Tuple, List, Dict
 
+from app.core.execution_policy import normalize_language
 
 DANGEROUS_PATTERNS: Dict[str, List[Tuple[str, str]]] = {
     "python": [
@@ -122,7 +122,10 @@ MAX_CODE_LINES = 1000
 
 
 def sanitize_code(code: str, language: str) -> Tuple[bool, str]:
-    language = language.lower().strip()
+    try:
+        language = normalize_language(language)
+    except ValueError as exc:
+        return False, str(exc)
     
     if len(code) > MAX_CODE_LENGTH:
         return False, f"Code exceeds maximum length of {MAX_CODE_LENGTH} characters"
@@ -158,28 +161,3 @@ def sanitize_code(code: str, language: str) -> Tuple[bool, str]:
     return True, "Code passed security check"
 
 
-def get_blocked_modules(language: str) -> List[str]:
-    blocked = {
-        "python": ["os", "subprocess", "sys", "shutil", "socket", "ctypes", 
-                   "multiprocessing", "requests", "urllib", "http"],
-        "javascript": ["child_process", "fs", "net", "http", "https"],
-        "typescript": ["child_process", "fs", "net", "http", "https"],
-        "go": ["os", "os/exec", "syscall", "net", "net/http"],
-        "java": ["java.lang.Runtime", "java.lang.ProcessBuilder", "java.net"],
-        "c": ["stdlib.h", "unistd.h", "sys/socket.h", "arpa/inet.h"],
-        "cpp": ["cstdlib", "unistd.h", "sys/socket.h", "arpa/inet.h", "fstream"],
-    }
-    return blocked.get(language.lower(), [])
-
-
-def get_blocked_functions(language: str) -> List[str]:
-    blocked = {
-        "python": ["eval()", "exec()", "compile()", "__import__()"],
-        "javascript": ["eval()", "Function()"],
-        "typescript": ["eval()", "Function()"],
-        "go": ["exec.Command()"],
-        "java": ["Runtime.getRuntime()", "ProcessBuilder", "Class.forName()"],
-        "c": ["system()", "exec()", "fork()", "popen()"],
-        "cpp": ["system()", "exec()", "fork()", "popen()"],
-    }
-    return blocked.get(language.lower(), [])

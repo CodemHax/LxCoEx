@@ -13,7 +13,7 @@ let editor;
 const modeMap = {
     'python': 'python',
     'javascript': 'javascript',
-    'typescript': 'javascript', // CodeMirror uses javascript mode for TS
+    'typescript': 'javascript',
     'go': 'go',
     'java': 'text/x-java',
     'c': 'text/x-csrc',
