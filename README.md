@@ -11,7 +11,7 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 
 ## Features
 
-- **Multi-language support** – Python, JavaScript, TypeScript, Go, Java, C, and C++
+- **Multi-language support** – Python, JavaScript, Java, C, and C++
 - **Queued & sync execution** – Run code via a queue or wait for immediate results
 - **Code sharing** – Generate shareable URLs for snippets
 - **Language templates** – Starter templates for each language
@@ -231,20 +231,24 @@ docker-compose up -d
 
 ---
 
+
+   ```text
+   http://127.0.0.1:8000
+   ```
+
+---
+
 ## Supported Languages
 
 | Language    | Runtime (example) | Typical Extension |
 |-------------|-------------------|-------------------|
 | Python      | 3.x               | `.py`             |
 | JavaScript  | Node.js           | `.js`             |
-| TypeScript  | Latest            | `.ts`             |
-| Go          | Latest            | `.go`             |
 | Java        | Latest            | `.java`           |
 | C           | GCC               | `.c`              |
 | C++         | G++               | `.cpp`            |
 
 > Exact runtime availability comes from the local machine or container. You can query it via `/api/v1/core/get-runtimes`.
-
 ---
 
 ## Security Features
@@ -262,7 +266,7 @@ Blocks e.g.:
 - Certain file and system access patterns
 - Network and encoding modules like `requests`, `urllib`, `http`, `base64`, `codecs`
 
-### JavaScript / TypeScript
+### JavaScript
 
 Restrictions include:
 
