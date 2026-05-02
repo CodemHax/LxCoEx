@@ -108,6 +108,14 @@ def read_stream(stream, limit: int, result_queue: queue.Queue, stream_name: str)
 
 
 def run_command(command: list[str], cwd: Path, stdin: str = "", timeout_ms: int = 3000) -> dict:
+    import time
+    import resource
+    
+    start_time = time.perf_counter()
+    env = os.environ.copy()
+    env["GOCACHE"] = "/tmp"
+    env["HOME"] = "/tmp"
+    
     try:
         process = subprocess.Popen(
             command,
@@ -115,12 +123,15 @@ def run_command(command: list[str], cwd: Path, stdin: str = "", timeout_ms: int 
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             cwd=str(cwd),
+            env=env,
         )
     except FileNotFoundError:
         return {
             "stdout": "",
             "stderr": f"Required runtime command not found: {command[0]}",
             "code": 127,
+            "time": 0,
+            "memory": 0,
         }
 
     result_queue: queue.Queue = queue.Queue()
@@ -150,10 +161,15 @@ def run_command(command: list[str], cwd: Path, stdin: str = "", timeout_ms: int 
             "stdout": "",
             "stderr": f"Execution timed out after {timeout_ms} ms",
             "code": -1,
+            "time": timeout_ms / 1000,
+            "memory": 0,
         }
 
     stdout_thread.join()
     stderr_thread.join()
+
+    end_time = time.perf_counter()
+    memory_kb = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss
 
     stdout = b""
     stderr = b""
@@ -179,6 +195,8 @@ def run_command(command: list[str], cwd: Path, stdin: str = "", timeout_ms: int 
         "stdout": stdout_text,
         "stderr": stderr_text,
         "code": code,
+        "time": round(end_time - start_time, 4),
+        "memory": round(memory_kb / 1024.0, 2),
     }
 
 
