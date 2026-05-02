@@ -154,7 +154,16 @@ CORRECTED CODE:
 \`\`\``;
 
         const response = await puter.ai.chat(prompt);
-        const responseText = response.message?.content || response;
+        let responseText = "";
+        if (typeof response === "string") {
+            responseText = response;
+        } else if (response && response.message && typeof response.message.content === "string") {
+            responseText = response.message.content;
+        } else if (response && typeof response.text === "string") {
+            responseText = response.text;
+        } else {
+            responseText = JSON.stringify(response);
+        }
 
         const explanationMatch = responseText.match(/EXPLANATION:\s*([\s\S]*?)(?=CORRECTED CODE:|$)/i);
         const codeMatch = responseText.match(/```[\w]*\n([\s\S]*?)```/);
@@ -316,15 +325,29 @@ function showShareModal(url) {
     }
 
     shareUrlInput.value = url;
-    shareStatusMessage.textContent = '✓ Link copied to clipboard!';
-    shareStatusMessage.className = 'share-status success';
     shareModal.style.display = 'flex';
+    shareUrlInput.select();
 
-    navigator.clipboard.writeText(url).catch(err => {
-        console.error('Failed to copy to clipboard:', err);
-        shareStatusMessage.textContent = 'Link ready - click Copy to copy';
-        shareStatusMessage.className = 'share-status';
-    });
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            shareStatusMessage.textContent = '✓ Link copied to clipboard!';
+            shareStatusMessage.className = 'share-status success';
+        }).catch(err => {
+            console.error('Failed to copy to clipboard:', err);
+            shareStatusMessage.textContent = 'Link ready - press Ctrl+C to copy';
+            shareStatusMessage.className = 'share-status';
+        });
+    } else {
+        try {
+            document.execCommand('copy');
+            shareStatusMessage.textContent = '✓ Link copied to clipboard!';
+            shareStatusMessage.className = 'share-status success';
+        } catch (err) {
+            console.error('Fallback copy failed:', err);
+            shareStatusMessage.textContent = 'Link ready - press Ctrl+C to copy';
+            shareStatusMessage.className = 'share-status';
+        }
+    }
 }
 
 function closeShareModal() {
@@ -360,18 +383,31 @@ function closeErrorModal() {
 
 function copyToClipboard() {
     const shareUrlInput = document.getElementById('shareUrlInput');
+    const statusMessage = document.getElementById('shareStatusMessage');
     if (!shareUrlInput) return;
 
     shareUrlInput.select();
-    navigator.clipboard.writeText(shareUrlInput.value).then(() => {
-        const statusMessage = document.getElementById('shareStatusMessage');
-        if (statusMessage) {
-            statusMessage.textContent = '✓ Copied to clipboard!';
-            statusMessage.className = 'share-status success';
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(shareUrlInput.value).then(() => {
+            if (statusMessage) {
+                statusMessage.textContent = '✓ Copied to clipboard!';
+                statusMessage.className = 'share-status success';
+            }
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+        });
+    } else {
+        try {
+            document.execCommand('copy');
+            if (statusMessage) {
+                statusMessage.textContent = '✓ Copied to clipboard!';
+                statusMessage.className = 'share-status success';
+            }
+        } catch (err) {
+            console.error('Fallback copy failed', err);
         }
-    }).catch(err => {
-        console.error('Failed to copy:', err);
-    });
+    }
 }
 
 document.addEventListener('keydown', function(e) {
