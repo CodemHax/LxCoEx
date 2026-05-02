@@ -13,8 +13,6 @@ let editor;
 const modeMap = {
     'python': 'python',
     'javascript': 'javascript',
-    'typescript': 'javascript',
-    'go': 'go',
     'java': 'text/x-java',
     'c': 'text/x-csrc',
     'cpp': 'text/x-c++src'

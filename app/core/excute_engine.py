@@ -18,8 +18,6 @@ from app.models.runtime_model import RuntimeInfo, RuntimeSpec
 RUNTIME_SPECS: dict[str, RuntimeSpec] = {
     "python":     RuntimeSpec(language="python",     runtime="CPython",    aliases=("py", "python3")),
     "javascript": RuntimeSpec(language="javascript", runtime="Node.js",    aliases=("js", "node", "nodejs")),
-    "typescript": RuntimeSpec(language="typescript", runtime="TypeScript", aliases=("ts",)),
-    "go":         RuntimeSpec(language="go",         runtime="Go",         aliases=("golang",)),
     "java":       RuntimeSpec(language="java",       runtime="OpenJDK",    aliases=("jva",)),
     "c":          RuntimeSpec(language="c",          runtime="GCC"),
     "cpp":        RuntimeSpec(language="cpp",        runtime="G++",        aliases=("c++", "cc", "cxx")),

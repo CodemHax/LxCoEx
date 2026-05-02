@@ -7,8 +7,6 @@ LANGUAGE_ALIASES: dict[str, str] = {
     "javascript": "javascript",
     "node": "javascript",
     "nodejs": "javascript",
-    "ts": "typescript",
-    "typescript": "typescript",
     "java": "java",
     "jva": "java",
     "c": "c",
@@ -16,8 +14,6 @@ LANGUAGE_ALIASES: dict[str, str] = {
     "cpp": "cpp",
     "c++": "cpp",
     "cxx": "cpp",
-    "go": "go",
-    "golang": "go",
 }
 
 DEFAULT_TIMEOUT_MS = 3_000
@@ -28,11 +24,9 @@ MAX_STDIN_LENGTH = 10_000
 FILE_NAMES: dict[str, str] = {
     "python": "main.py",
     "javascript": "main.js",
-    "typescript": "main.ts",
     "java": "Main.java",
     "c": "main.c",
     "cpp": "main.cpp",
-    "go": "main.go",
 }
 
 
