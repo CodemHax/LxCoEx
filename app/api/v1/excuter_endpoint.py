@@ -7,7 +7,7 @@ from app.core.execution_policy import normalize_language
 from app.core.rate_limit import RateLimiter
 from app.core.excute_engine import get_runtime
 from app.core.code_sanitizer import sanitize_code, get_blocked_modules, get_blocked_functions
-from app.core.templates import get_template, get_all_templates, get_available_languages
+from app.core.templates import get_template, get_all_templates
 from app.core.exceptions import SecurityError, JobNotFoundError, CodeExecutionError
 from app.models.code_input_model import CodeInput
 from app.services.logger import logger
@@ -154,8 +154,22 @@ async def get_language_template(language: str):
 @ex_route.get("/templates")
 async def get_templates():
     templates = get_all_templates()
-    languages = get_available_languages()
-    return JSONResponse({
-        "templates": templates,
-        "languages": languages
-    })
+    return JSONResponse({"templates": templates})
+
+
+@ex_route.get("/restrictions/{language}")
+async def get_language_restrictions(language: str):
+    try:
+        modules = get_blocked_modules(language)
+        functions = get_blocked_functions(language)
+        if not modules and not functions:
+            raise HTTPException(status_code=404, detail=f"No restrictions found for language: {language}")
+        return JSONResponse({
+            "language": language,
+            "blocked_modules": modules,
+            "blocked_functions": functions,
+        })
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
