@@ -5,7 +5,7 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 ![LiCoEx](https://img.shields.io/badge/LiCoEx-Code%20Executor-00b8a3)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green)
-![License](https://img.shields.io/badge/License-MIT-yellow)
+![License](https://img.shields.io/badge/License-GPL-yellow)
 
 ---
 
