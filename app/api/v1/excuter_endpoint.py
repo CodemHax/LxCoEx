@@ -131,7 +131,7 @@ async def get_queue_status():
 async def get_runtimes():
     try:
         runtimes = await get_runtime()
-        return JSONResponse(content=runtimes, status_code=200)
+        return JSONResponse(content=[r.model_dump() for r in runtimes], status_code=200)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
