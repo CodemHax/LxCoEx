@@ -13,13 +13,14 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 
 - **Multi-language support** – Python, JavaScript, Java, C, and C++
 - **Queued & sync execution** – Run code via a queue or wait for immediate results
-- **Code sharing** – Generate shareable URLs for snippets
+- **Code sharing** – Generate shareable URLs for snippets (now with enhanced clipboard support and fallback)
 - **Language templates** – Starter templates for each language
 - **Hardened sandbox** – Containerized execution with no network, non-root user, read-only rootfs, and resource limits
 - **Security layer** – Code sanitizer to block obvious dangerous operations before sandbox execution
 - **Rate limiting** – Protects the API from abuse
 - **Dark / light theme** – Toggleable UI theme
-- **AI error explanation** – Optional AI‑based explanations for errors (via Puter.js)
+- **Local Persistence** – Code is automatically saved to local storage (Ctrl+S / Cmd+S)
+- **AI error explanation** – Enhanced AI‑based explanations for errors (now more robust and handles multiple response formats)
 
 ---
 
@@ -231,13 +232,6 @@ docker-compose up -d
 
 ---
 
-
-   ```text
-   http://127.0.0.1:8000
-   ```
-
----
-
 ## Supported Languages
 
 | Language    | Runtime (example) | Typical Extension |
@@ -249,6 +243,7 @@ docker-compose up -d
 | C++         | G++               | `.cpp`            |
 
 > Exact runtime availability comes from the local machine or container. You can query it via `/api/v1/core/get-runtimes`.
+
 ---
 
 ## Security Features
@@ -365,4 +360,3 @@ This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE)
 - [FastAPI](https://fastapi.tiangolo.com/) – Web framework
 - [CodeMirror](https://codemirror.net/) – In‑browser code editor
 - [Puter.js](https://puter.com/) – AI / assistant integration
-
