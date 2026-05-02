@@ -136,7 +136,17 @@ def sanitize_code(code: str, language: str) -> tuple[bool, str]:
     
     if '\x00' in code:
         return False, "Null bytes detected in code"
-    
+    blocked_modules = get_blocked_modules(language)
+    for module in blocked_modules:
+        if re.search(r'\b' + re.escape(module) + r'\b', code):
+            return False, f"Security violation: Module '{module}' is blocked"
+            
+    blocked_functions = get_blocked_functions(language)
+    for func in blocked_functions:
+        base_func = func.replace('()', '')
+        if re.search(r'\b' + re.escape(base_func) + r'\b', code):
+            return False, f"Security violation: Function '{func}' is blocked"
+
     patterns = DANGEROUS_PATTERNS.get(language, [])
     
     backtick_safe_languages = {"javascript", "typescript"}
@@ -196,5 +206,7 @@ def get_blocked_functions(language: str) -> list[str]:
     except ValueError:
         return []
     return blocked.get(language, [])
+
+
 
 
