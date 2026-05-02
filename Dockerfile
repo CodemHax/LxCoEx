@@ -12,7 +12,7 @@ COPY --from=docker_cli /usr/local/bin/docker /usr/local/bin/docker
 
 COPY . .
 
-EXPOSE 8000
-
+EXPOSE 8007
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8007"]
+
 
