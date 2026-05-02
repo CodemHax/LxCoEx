@@ -1,8 +1,8 @@
-import re
+﻿import re
 
 from app.core.execution_policy import normalize_language
 
-DANGEROUS_PATTERNS: Dict[str, List[Tuple[str, str]]] = {
+DANGEROUS_PATTERNS: dict[str, list[tuple[str, str]]] = {
     "python": [
         (r'\bimport\s+os\b', "Import of 'os' module is not allowed"),
         (r'\bfrom\s+os\s+import\b', "Import from 'os' module is not allowed"),
@@ -121,7 +121,7 @@ MAX_CODE_LENGTH = 50000
 MAX_CODE_LINES = 1000
 
 
-def sanitize_code(code: str, language: str) -> Tuple[bool, str]:
+def sanitize_code(code: str, language: str) -> tuple[bool, str]:
     try:
         language = normalize_language(language)
     except ValueError as exc:
@@ -159,5 +159,42 @@ def sanitize_code(code: str, language: str) -> Tuple[bool, str]:
             return False, f"Security violation: {message}"
     
     return True, "Code passed security check"
+
+
+
+
+def get_blocked_modules(language: str) -> list[str]:
+    blocked = {
+        "python":     ["os", "subprocess", "sys", "shutil", "socket", "ctypes",
+                       "multiprocessing", "requests", "urllib", "http"],
+        "javascript": ["child_process", "fs", "net", "http", "https"],
+        "typescript": ["child_process", "fs", "net", "http", "https"],
+        "go":         ["os", "os/exec", "syscall", "net", "net/http"],
+        "java":       ["java.lang.Runtime", "java.lang.ProcessBuilder", "java.net"],
+        "c":          ["stdlib.h", "unistd.h", "sys/socket.h", "arpa/inet.h"],
+        "cpp":        ["cstdlib", "unistd.h", "sys/socket.h", "arpa/inet.h", "fstream"],
+    }
+    try:
+        language = normalize_language(language)
+    except ValueError:
+        return []
+    return blocked.get(language, [])
+
+
+def get_blocked_functions(language: str) -> list[str]:
+    blocked = {
+        "python":     ["eval()", "exec()", "compile()", "__import__()"],
+        "javascript": ["eval()", "Function()"],
+        "typescript": ["eval()", "Function()"],
+        "go":         ["exec.Command()"],
+        "java":       ["Runtime.getRuntime()", "ProcessBuilder", "Class.forName()"],
+        "c":          ["system()", "exec()", "fork()", "popen()"],
+        "cpp":        ["system()", "exec()", "fork()", "popen()"],
+    }
+    try:
+        language = normalize_language(language)
+    except ValueError:
+        return []
+    return blocked.get(language, [])
 
 
