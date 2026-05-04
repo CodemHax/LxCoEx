@@ -3,19 +3,18 @@ const API_URL = '/api/v1/core';
 let currentOutput = { stdout: '', stderr: '' };
 let executionStats = { time: null, memory: null, status: 'idle' };
 
-const codeEditorElement = document.getElementById('codeEditor');
 const runBtn = document.getElementById('runBtn');
 const runBtnText = document.getElementById('runBtnText');
 const themeToggle = document.getElementById('themeToggle');
-let editor;
+let editor; // Monaco editor instance
 
-// Language mode mapping for CodeMirror
-const modeMap = {
+// Language ID mapping for Monaco Editor
+const langMap = {
     'python': 'python',
     'javascript': 'javascript',
-    'java': 'text/x-java',
-    'c': 'text/x-csrc',
-    'cpp': 'text/x-c++src'
+    'java': 'java',
+    'c': 'c',
+    'cpp': 'cpp'
 };
 
 function showQueuedStatus() {
@@ -449,26 +448,44 @@ async function loadTemplate(language) {
     }
 }
 
-function initCodeMirror() {
-    editor = CodeMirror.fromTextArea(codeEditorElement, {
-        lineNumbers: true,
-        mode: 'python',
-        theme: 'monokai',
-        indentUnit: 4,
-        indentWithTabs: false,
-        lineWrapping: true,
-        extraKeys: {
-            "Tab": function (cm) {
-                if (cm.somethingSelected()) {
-                    cm.indentSelection("add");
-                } else {
-                    cm.replaceSelection("    ", "end");
-                }
-            }
-        }
+function initMonaco() {
+    require.config({
+        paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs' }
     });
 
-    editor.setSize("100%", "100%");
+    require(['vs/editor/editor.main'], function () {
+        const isDark = !document.body.classList.contains('light-theme');
+
+        editor = monaco.editor.create(document.getElementById('monacoEditor'), {
+            value: [
+                'def greet(name):',
+                '    return f"Hello, {name}!"',
+                '',
+                'print(greet("World"))',
+                'print("Happy coding!")'
+            ].join('\n'),
+            language: 'python',
+            theme: isDark ? 'vs-dark' : 'vs',
+            fontSize: 14,
+            fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+            fontLigatures: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            tabSize: 4,
+            insertSpaces: true,
+            wordWrap: 'on',
+            lineNumbers: 'on',
+            renderLineHighlight: 'all',
+            smoothScrolling: true,
+            cursorBlinking: 'smooth',
+            cursorSmoothCaretAnimation: 'on',
+            padding: { top: 12, bottom: 12 }
+        });
+
+        // Wire up the rest of the app after Monaco is ready
+        postEditorInit();
+    });
 }
 
 function toggleTheme() {
@@ -476,15 +493,13 @@ function toggleTheme() {
     const isLight = body.classList.toggle('light-theme');
     const icon = themeToggle.querySelector('.theme-icon');
 
-    // Update icon
     icon.textContent = isLight ? '☀️' : '🌙';
 
-    // Update CodeMirror theme
+    // Update Monaco theme
     if (editor) {
-        editor.setOption('theme', isLight ? 'eclipse' : 'monokai');
+        monaco.editor.setTheme(isLight ? 'vs' : 'vs-dark');
     }
 
-    // Save preference
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
 }
 
@@ -493,17 +508,26 @@ function loadThemePreference() {
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
         themeToggle.querySelector('.theme-icon').textContent = '☀️';
-        if (editor) editor.setOption('theme', 'eclipse');
+        if (editor) monaco.editor.setTheme('vs');
     }
 }
 
 function init() {
-    initCodeMirror();
-    checkServer();
-    loadThemePreference();
+    // Apply saved theme BEFORE Monaco loads so it reads the correct class
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeToggle.querySelector('.theme-icon').textContent = '☀️';
+    }
 
-    // Event Listeners
+    initMonaco(); // Monaco will call postEditorInit() when ready
+    checkServer();
     themeToggle.addEventListener('click', toggleTheme);
+}
+
+// Everything that needs `editor` to be ready goes here
+function postEditorInit() {
+    loadThemePreference();
 
     // Global Shortcuts
     document.addEventListener('keydown', (e) => {
@@ -513,17 +537,15 @@ function init() {
             runCode();
         }
 
-        // Save Code (Mock): Ctrl+S or Cmd+S
+        // Save Code: Ctrl+S or Cmd+S
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
             e.preventDefault();
 
-            // Show toast notification
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = 'Code Saved locally (Browser Storage)';
             document.body.appendChild(toast);
 
-            // Save to local storage for persistence across reloads
             localStorage.setItem('saved_code', editor.getValue());
 
             setTimeout(() => {
@@ -539,9 +561,8 @@ function init() {
     const languageSelect = document.getElementById('languageSelect');
     languageSelect.addEventListener('change', (e) => {
         const lang = e.target.value;
-        const mode = modeMap[lang] || 'javascript';
-
-        editor.setOption('mode', mode);
+        const monacoLang = langMap[lang] || 'javascript';
+        monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
         loadTemplate(lang);
     });
 
@@ -552,7 +573,6 @@ function init() {
     if (snippetId) {
         loadSharedSnippet(snippetId);
     } else {
-        // Check for saved code
         const savedCode = localStorage.getItem('saved_code');
         if (savedCode) {
             editor.setValue(savedCode);
@@ -569,9 +589,9 @@ async function loadSharedSnippet(snippetId) {
 
             const languageSelect = document.getElementById('languageSelect');
             languageSelect.value = data.language;
-            // Update mode
-            const mode = modeMap[data.language] || 'javascript';
-            editor.setOption('mode', mode);
+            // Update Monaco language
+            const monacoLang = langMap[data.language] || 'javascript';
+            monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
 
             // Show toast
             const toast = document.createElement('div');

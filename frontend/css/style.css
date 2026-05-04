@@ -237,36 +237,16 @@ select:focus {
 .editor-container {
     flex: 1;
     position: relative;
-    /* overflow: hidden; Removed for CodeMirror */
+    overflow: hidden;
     background: var(--bg-secondary);
 }
 
-/* CodeMirror Customization */
-.CodeMirror {
-    height: 100% !important;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    background: transparent;
-}
-
-.cm-s-monokai.CodeMirror {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-}
-
-.cm-s-monokai .CodeMirror-gutters {
-    background-color: var(--bg-tertiary) !important;
-    border-right: 1px solid var(--border) !important;
-}
-
-.cm-s-monokai .CodeMirror-linenumber {
-    color: var(--text-muted) !important;
-}
-
-body.light-theme .cm-s-eclipse.CodeMirror {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
+/* Monaco Editor container — must have explicit dimensions */
+#monacoEditor {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    inset: 0;
 }
 
 /* Toast Notification */

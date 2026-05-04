@@ -16,16 +16,8 @@
 
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- CodeMirror -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/eclipse.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
-    <!-- Java, C, C++, C# -->
+    <!-- Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs/loader.min.js"></script>
 
     <script src="https://js.puter.com/v2/"></script>
 </head>
@@ -70,12 +62,7 @@
                 </div>
             </div>
             <div class="editor-container">
-                <div class="line-numbers" id="lineNumbers" style="display: none;"></div>
-                <textarea class="code-editor" id="codeEditor" placeholder="Write your code here..." spellcheck="false">def greet(name):
-    return f"Hello, {name}!"
-
-print(greet("World"))
-print("Happy coding!")</textarea>
+                <div id="monacoEditor"></div>
             </div>
             <div class="input-section">
                 <div class="input-header">
