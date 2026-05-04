@@ -5,6 +5,7 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 ![LiCoEx](https://img.shields.io/badge/LiCoEx-Code%20Executor-00b8a3)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green)
+![Monaco](https://img.shields.io/badge/Editor-Monaco-0078d4)
 ![License](https://img.shields.io/badge/License-GPLv3-yellow)
 
 ---
@@ -18,7 +19,8 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 - **Hardened sandbox** – Containerized execution with no network, non-root user, read-only rootfs, and resource limits
 - **Security layer** – Code sanitizer to block obvious dangerous operations before sandbox execution
 - **Rate limiting** – Protects the API from abuse
-- **Dark / light theme** – Toggleable UI theme
+- **Monaco Editor** – VS Code's editor engine with syntax highlighting, IntelliSense, multi-cursor, find & replace, and smooth animations
+- **Dark / light theme** – Toggleable UI theme (`vs-dark` / `vs` Monaco themes)
 - **Local Persistence** – Code is automatically saved to local storage (Ctrl+S / Cmd+S)
 - **AI error explanation** – Enhanced AI‑based explanations for errors (now more robust and handles multiple response formats)
 
@@ -44,7 +46,7 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 |---------------------|------------------------------------------|
 | **HTML5 / CSS3**    | Structure and styling                   |
 | **JavaScript (ES6+)** | Client‑side logic                     |
-| **CodeMirror**      | In‑browser code editor with highlighting |
+| **Monaco Editor**   | VS Code's editor engine — syntax highlighting, IntelliSense, multi-cursor, find & replace |
 | **Puter.js**        | AI‑powered error explanations            |
 
 ---
@@ -358,5 +360,5 @@ This project is licensed under the **MIT License**. See the [`LICENSE`](LICENSE)
 ## Acknowledgments
 
 - [FastAPI](https://fastapi.tiangolo.com/) – Web framework
-- [CodeMirror](https://codemirror.net/) – In‑browser code editor
+- [Monaco Editor](https://microsoft.github.io/monaco-editor/) – VS Code's in‑browser code editor engine
 - [Puter.js](https://puter.com/) – AI / assistant integration
