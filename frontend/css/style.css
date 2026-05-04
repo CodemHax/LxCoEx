@@ -447,13 +447,6 @@ select:focus {
         height: 45vh;
     }
 
-    /* Monaco: switch from absolute-fill to relative with explicit height */
-    #monacoEditor {
-        position: relative;
-        height: 45vh;
-        inset: unset;
-    }
-
     .header {
         padding: 0.75rem 1rem;
     }
