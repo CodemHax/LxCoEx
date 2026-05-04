@@ -16,8 +16,17 @@
 
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- Monaco Editor -->
+    <!-- Monaco Editor (desktop) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs/loader.min.js"></script>
+
+    <!-- CodeMirror 5 (mobile fallback) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/eclipse.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/clike/clike.min.js"></script>
 
     <script src="https://js.puter.com/v2/"></script>
 </head>
@@ -63,6 +72,11 @@
             </div>
             <div class="editor-container">
                 <div id="monacoEditor"></div>
+                <textarea id="cmEditor" style="display:none;">def greet(name):
+    return f"Hello, {name}!"
+
+print(greet("World"))
+print("Happy coding!")</textarea>
             </div>
             <div class="input-section">
                 <div class="input-header">

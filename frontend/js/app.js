@@ -6,16 +6,144 @@ let executionStats = { time: null, memory: null, status: 'idle' };
 const runBtn = document.getElementById('runBtn');
 const runBtnText = document.getElementById('runBtnText');
 const themeToggle = document.getElementById('themeToggle');
-let editor; // Monaco editor instance
 
+// Unified editor wrapper — exposes getValue/setValue/setLanguage/setTheme
+let editor = null;
+let editorType = null; // 'monaco' or 'codemirror'
 
-const langMap = {
+const DEFAULT_CODE = [
+    'def greet(name):',
+    '    return f"Hello, {name}!"',
+    '',
+    'print(greet("World"))',
+    'print("Happy coding!")'
+].join('\n');
+
+// Monaco language IDs
+const monacoLangMap = {
     'python': 'python',
     'javascript': 'javascript',
     'java': 'java',
     'c': 'c',
     'cpp': 'cpp'
 };
+
+// CodeMirror mode mapping
+const cmModeMap = {
+    'python': 'python',
+    'javascript': 'javascript',
+    'java': 'text/x-java',
+    'c': 'text/x-csrc',
+    'cpp': 'text/x-c++src'
+};
+
+function isMobile() {
+    return window.matchMedia('(max-width: 900px)').matches;
+}
+
+// ── Editor initialisation ─────────────────────────────────────────────
+
+function initEditor() {
+    if (isMobile()) {
+        initCodeMirror();
+    } else {
+        initMonaco();
+    }
+}
+
+function initMonaco() {
+    editorType = 'monaco';
+    document.getElementById('monacoEditor').style.display = 'block';
+    document.getElementById('cmEditor').style.display = 'none';
+
+    require.config({
+        paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs' }
+    });
+
+    require(['vs/editor/editor.main'], function () {
+        const isDark = !document.body.classList.contains('light-theme');
+
+        const monacoInstance = monaco.editor.create(document.getElementById('monacoEditor'), {
+            value: DEFAULT_CODE,
+            language: 'python',
+            theme: isDark ? 'vs-dark' : 'vs',
+            fontSize: 14,
+            fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+            fontLigatures: true,
+            minimap: { enabled: false },
+            scrollBeyondLastLine: false,
+            automaticLayout: true,
+            tabSize: 4,
+            insertSpaces: true,
+            wordWrap: 'on',
+            lineNumbers: 'on',
+            renderLineHighlight: 'all',
+            smoothScrolling: true,
+            cursorBlinking: 'smooth',
+            cursorSmoothCaretAnimation: 'on',
+            padding: { top: 12, bottom: 12 }
+        });
+
+        editor = {
+            getValue: () => monacoInstance.getValue(),
+            setValue: (v) => monacoInstance.setValue(v),
+            setLanguage: (lang) => {
+                const id = monacoLangMap[lang] || 'javascript';
+                monaco.editor.setModelLanguage(monacoInstance.getModel(), id);
+            },
+            setTheme: (isLight) => {
+                monaco.editor.setTheme(isLight ? 'vs' : 'vs-dark');
+            },
+            _raw: monacoInstance
+        };
+
+        postEditorInit();
+    });
+}
+
+function initCodeMirror() {
+    editorType = 'codemirror';
+    document.getElementById('monacoEditor').style.display = 'none';
+    document.getElementById('cmEditor').style.display = 'block';
+
+    const isDark = !document.body.classList.contains('light-theme');
+    const cmInstance = CodeMirror.fromTextArea(document.getElementById('cmEditor'), {
+        lineNumbers: true,
+        mode: 'python',
+        theme: isDark ? 'monokai' : 'eclipse',
+        indentUnit: 4,
+        indentWithTabs: false,
+        lineWrapping: true,
+        extraKeys: {
+            "Tab": function (cm) {
+                if (cm.somethingSelected()) {
+                    cm.indentSelection("add");
+                } else {
+                    cm.replaceSelection("    ", "end");
+                }
+            }
+        }
+    });
+
+    cmInstance.setSize("100%", "100%");
+
+    editor = {
+        getValue: () => cmInstance.getValue(),
+        setValue: (v) => cmInstance.setValue(v),
+        setLanguage: (lang) => {
+            const mode = cmModeMap[lang] || 'javascript';
+            cmInstance.setOption('mode', mode);
+        },
+        setTheme: (isLight) => {
+            cmInstance.setOption('theme', isLight ? 'eclipse' : 'monokai');
+        },
+        _raw: cmInstance
+    };
+
+    postEditorInit();
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────
 
 function showQueuedStatus() {
     const outputContent = document.getElementById('outputContent');
@@ -106,9 +234,7 @@ function escapeHtml(text) {
 }
 
 async function explainError() {
-    if (!window.lastError) {
-        return;
-    }
+    if (!window.lastError) return;
 
     const { code, error, language } = window.lastError;
     const aiExplanation = document.getElementById('aiExplanation');
@@ -200,7 +326,6 @@ CORRECTED CODE:
         btn.textContent = 'AI Explain';
     }
 
-    // On mobile, show the FAB so the user can scroll back up to the editor
     showBackToEditorBtn();
 }
 
@@ -210,13 +335,14 @@ function copyCode() {
     }
 }
 
+// ── Code execution ────────────────────────────────────────────────────
+
 async function runCode() {
     const code = editor.getValue();
     const language = document.getElementById('languageSelect').value;
     const stdin = document.getElementById('stdinInput').value || null;
 
     runBtn.disabled = true;
-
     showQueuedStatus();
 
     const startTime = performance.now();
@@ -224,9 +350,7 @@ async function runCode() {
     try {
         const response = await fetch(`${API_URL}/execute-sync`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 code: code,
                 language: language,
@@ -269,6 +393,8 @@ async function runCode() {
     runBtn.disabled = false;
 }
 
+// ── Code sharing ──────────────────────────────────────────────────────
+
 async function shareCode() {
     const code = editor.getValue();
     const language = document.getElementById('languageSelect').value;
@@ -286,9 +412,7 @@ async function shareCode() {
     try {
         const response = await fetch(`${API_URL.replace('/core', '')}/snippet/share`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 code: code,
                 language: language,
@@ -303,7 +427,6 @@ async function shareCode() {
 
         const data = await response.json();
         const shareUrl = `${window.location.origin}${window.location.pathname}?snippet=${data.id}`;
-
         showShareModal(shareUrl);
 
     } catch (error) {
@@ -313,6 +436,8 @@ async function shareCode() {
         shareBtnSpan.textContent = 'Share';
     }
 }
+
+// ── Modals ────────────────────────────────────────────────────────────
 
 function showShareModal(url) {
     const shareModal = document.getElementById('shareModal');
@@ -332,8 +457,7 @@ function showShareModal(url) {
         navigator.clipboard.writeText(url).then(() => {
             shareStatusMessage.textContent = '✓ Link copied to clipboard!';
             shareStatusMessage.className = 'share-status success';
-        }).catch(err => {
-            console.error('Failed to copy to clipboard:', err);
+        }).catch(() => {
             shareStatusMessage.textContent = 'Link ready - press Ctrl+C to copy';
             shareStatusMessage.className = 'share-status';
         });
@@ -343,7 +467,6 @@ function showShareModal(url) {
             shareStatusMessage.textContent = '✓ Link copied to clipboard!';
             shareStatusMessage.className = 'share-status success';
         } catch (err) {
-            console.error('Fallback copy failed:', err);
             shareStatusMessage.textContent = 'Link ready - press Ctrl+C to copy';
             shareStatusMessage.className = 'share-status';
         }
@@ -352,33 +475,22 @@ function showShareModal(url) {
 
 function closeShareModal() {
     const shareModal = document.getElementById('shareModal');
-    if (shareModal) {
-        shareModal.style.display = 'none';
-    }
-    const shareStatusMessage = document.getElementById('shareStatusMessage');
-    if (shareStatusMessage) {
-        shareStatusMessage.className = 'share-status';
-    }
+    if (shareModal) shareModal.style.display = 'none';
+    const msg = document.getElementById('shareStatusMessage');
+    if (msg) msg.className = 'share-status';
 }
 
 function showErrorModal(message) {
     const errorModal = document.getElementById('errorModal');
     const errorMessage = document.getElementById('errorMessage');
-
-    if (!errorModal || !errorMessage) {
-        console.error('Error modal elements not found, message:', message);
-        return;
-    }
-
+    if (!errorModal || !errorMessage) return;
     errorMessage.textContent = message;
     errorModal.style.display = 'flex';
 }
 
 function closeErrorModal() {
     const errorModal = document.getElementById('errorModal');
-    if (errorModal) {
-        errorModal.style.display = 'none';
-    }
+    if (errorModal) errorModal.style.display = 'none';
 }
 
 function copyToClipboard() {
@@ -387,16 +499,13 @@ function copyToClipboard() {
     if (!shareUrlInput) return;
 
     shareUrlInput.select();
-    
     if (navigator.clipboard) {
         navigator.clipboard.writeText(shareUrlInput.value).then(() => {
             if (statusMessage) {
                 statusMessage.textContent = '✓ Copied to clipboard!';
                 statusMessage.className = 'share-status success';
             }
-        }).catch(err => {
-            console.error('Failed to copy:', err);
-        });
+        }).catch(() => {});
     } else {
         try {
             document.execCommand('copy');
@@ -404,9 +513,7 @@ function copyToClipboard() {
                 statusMessage.textContent = '✓ Copied to clipboard!';
                 statusMessage.className = 'share-status success';
             }
-        } catch (err) {
-            console.error('Fallback copy failed', err);
-        }
+        } catch (err) {}
     }
 }
 
@@ -418,12 +525,9 @@ document.addEventListener('keydown', function(e) {
 });
 
 // ── Mobile: Back-to-Editor FAB ────────────────────────────────────────
-function isMobileLayout() {
-    return window.matchMedia('(max-width: 900px)').matches;
-}
 
 function showBackToEditorBtn() {
-    if (isMobileLayout()) {
+    if (isMobile()) {
         document.getElementById('backToEditorBtn')?.classList.add('visible');
     }
 }
@@ -438,21 +542,21 @@ function scrollToEditor() {
 }
 
 window.addEventListener('scroll', () => {
-    if (!isMobileLayout()) return;
+    if (!isMobile()) return;
     const editorPanel = document.querySelector('.panel');
     if (!editorPanel) return;
-    const editorBottom = editorPanel.getBoundingClientRect().bottom;
-    if (editorBottom < 0) {
+    if (editorPanel.getBoundingClientRect().bottom < 0) {
         showBackToEditorBtn();
     } else {
         hideBackToEditorBtn();
     }
 }, { passive: true });
 
+// ── Server / templates ────────────────────────────────────────────────
+
 function updateServerStatus(connected) {
     const indicator = document.getElementById('serverStatus');
     const text = document.getElementById('serverStatusText');
-
     if (connected) {
         indicator.classList.remove('error');
         text.textContent = 'Connected';
@@ -483,56 +587,14 @@ async function loadTemplate(language) {
     }
 }
 
-function initMonaco() {
-    require.config({
-        paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs' }
-    });
-
-    require(['vs/editor/editor.main'], function () {
-        const isDark = !document.body.classList.contains('light-theme');
-
-        editor = monaco.editor.create(document.getElementById('monacoEditor'), {
-            value: [
-                'def greet(name):',
-                '    return f"Hello, {name}!"',
-                '',
-                'print(greet("World"))',
-                'print("Happy coding!")'
-            ].join('\n'),
-            language: 'python',
-            theme: isDark ? 'vs-dark' : 'vs',
-            fontSize: 14,
-            fontFamily: '"JetBrains Mono", "Fira Code", monospace',
-            fontLigatures: true,
-            minimap: { enabled: false },
-            scrollBeyondLastLine: false,
-            automaticLayout: true,
-            tabSize: 4,
-            insertSpaces: true,
-            wordWrap: 'on',
-            lineNumbers: 'on',
-            renderLineHighlight: 'all',
-            smoothScrolling: true,
-            cursorBlinking: 'smooth',
-            cursorSmoothCaretAnimation: 'on',
-            padding: { top: 12, bottom: 12 }
-        });
-
-        postEditorInit();
-    });
-}
+// ── Theme ─────────────────────────────────────────────────────────────
 
 function toggleTheme() {
     const body = document.body;
     const isLight = body.classList.toggle('light-theme');
-    const icon = themeToggle.querySelector('.theme-icon');
+    themeToggle.querySelector('.theme-icon').textContent = isLight ? '☀️' : '🌙';
 
-    icon.textContent = isLight ? '☀️' : '🌙';
-
-    if (editor) {
-        monaco.editor.setTheme(isLight ? 'vs' : 'vs-dark');
-    }
-
+    if (editor) editor.setTheme(isLight);
     localStorage.setItem('theme', isLight ? 'light' : 'dark');
 }
 
@@ -541,9 +603,11 @@ function loadThemePreference() {
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
         themeToggle.querySelector('.theme-icon').textContent = '☀️';
-        if (editor) monaco.editor.setTheme('vs');
+        if (editor) editor.setTheme(true);
     }
 }
+
+// ── Init ──────────────────────────────────────────────────────────────
 
 function init() {
     const savedTheme = localStorage.getItem('theme');
@@ -552,10 +616,11 @@ function init() {
         themeToggle.querySelector('.theme-icon').textContent = '☀️';
     }
 
-    initMonaco();
+    initEditor();
     checkServer();
     themeToggle.addEventListener('click', toggleTheme);
 }
+
 function postEditorInit() {
     loadThemePreference();
 
@@ -567,14 +632,11 @@ function postEditorInit() {
 
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
             e.preventDefault();
-
             const toast = document.createElement('div');
             toast.className = 'toast';
             toast.textContent = 'Code Saved locally (Browser Storage)';
             document.body.appendChild(toast);
-
             localStorage.setItem('saved_code', editor.getValue());
-
             setTimeout(() => {
                 toast.classList.add('show');
                 setTimeout(() => {
@@ -587,13 +649,10 @@ function postEditorInit() {
 
     const languageSelect = document.getElementById('languageSelect');
     languageSelect.addEventListener('change', (e) => {
-        const lang = e.target.value;
-        const monacoLang = langMap[lang] || 'javascript';
-        monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
-        loadTemplate(lang);
+        editor.setLanguage(e.target.value);
+        loadTemplate(e.target.value);
     });
 
-    // Check for shared code in URL
     const urlParams = new URLSearchParams(window.location.search);
     const snippetId = urlParams.get('snippet');
 
@@ -601,9 +660,7 @@ function postEditorInit() {
         loadSharedSnippet(snippetId);
     } else {
         const savedCode = localStorage.getItem('saved_code');
-        if (savedCode) {
-            editor.setValue(savedCode);
-        }
+        if (savedCode) editor.setValue(savedCode);
     }
 }
 
@@ -614,11 +671,8 @@ async function loadSharedSnippet(snippetId) {
             const data = await response.json();
             editor.setValue(data.code);
 
-            const languageSelect = document.getElementById('languageSelect');
-            languageSelect.value = data.language;
-            
-            const monacoLang = langMap[data.language] || 'javascript';
-            monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
+            document.getElementById('languageSelect').value = data.language;
+            editor.setLanguage(data.language);
 
             const toast = document.createElement('div');
             toast.className = 'toast show';
