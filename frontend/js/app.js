@@ -8,7 +8,7 @@ const runBtnText = document.getElementById('runBtnText');
 const themeToggle = document.getElementById('themeToggle');
 let editor; // Monaco editor instance
 
-// Language ID mapping for Monaco Editor
+
 const langMap = {
     'python': 'python',
     'javascript': 'javascript',
@@ -199,6 +199,9 @@ CORRECTED CODE:
         btn.disabled = false;
         btn.textContent = 'AI Explain';
     }
+
+    // On mobile, show the FAB so the user can scroll back up to the editor
+    showBackToEditorBtn();
 }
 
 function copyCode() {
@@ -414,6 +417,38 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// ── Mobile: Back-to-Editor FAB ────────────────────────────────────────
+function isMobileLayout() {
+    return window.matchMedia('(max-width: 900px)').matches;
+}
+
+function showBackToEditorBtn() {
+    if (isMobileLayout()) {
+        document.getElementById('backToEditorBtn')?.classList.add('visible');
+    }
+}
+
+function hideBackToEditorBtn() {
+    document.getElementById('backToEditorBtn')?.classList.remove('visible');
+}
+
+function scrollToEditor() {
+    document.querySelector('.panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    hideBackToEditorBtn();
+}
+
+window.addEventListener('scroll', () => {
+    if (!isMobileLayout()) return;
+    const editorPanel = document.querySelector('.panel');
+    if (!editorPanel) return;
+    const editorBottom = editorPanel.getBoundingClientRect().bottom;
+    if (editorBottom < 0) {
+        showBackToEditorBtn();
+    } else {
+        hideBackToEditorBtn();
+    }
+}, { passive: true });
+
 function updateServerStatus(connected) {
     const indicator = document.getElementById('serverStatus');
     const text = document.getElementById('serverStatusText');
@@ -483,7 +518,6 @@ function initMonaco() {
             padding: { top: 12, bottom: 12 }
         });
 
-        // Wire up the rest of the app after Monaco is ready
         postEditorInit();
     });
 }
@@ -495,7 +529,6 @@ function toggleTheme() {
 
     icon.textContent = isLight ? '☀️' : '🌙';
 
-    // Update Monaco theme
     if (editor) {
         monaco.editor.setTheme(isLight ? 'vs' : 'vs-dark');
     }
@@ -513,31 +546,25 @@ function loadThemePreference() {
 }
 
 function init() {
-    // Apply saved theme BEFORE Monaco loads so it reads the correct class
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
         themeToggle.querySelector('.theme-icon').textContent = '☀️';
     }
 
-    initMonaco(); // Monaco will call postEditorInit() when ready
+    initMonaco();
     checkServer();
     themeToggle.addEventListener('click', toggleTheme);
 }
-
-// Everything that needs `editor` to be ready goes here
 function postEditorInit() {
     loadThemePreference();
 
-    // Global Shortcuts
     document.addEventListener('keydown', (e) => {
-        // Run Code: Ctrl+Enter or Cmd+Enter
         if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
             e.preventDefault();
             runCode();
         }
 
-        // Save Code: Ctrl+S or Cmd+S
         if ((e.ctrlKey || e.metaKey) && e.key === 's') {
             e.preventDefault();
 
@@ -589,11 +616,10 @@ async function loadSharedSnippet(snippetId) {
 
             const languageSelect = document.getElementById('languageSelect');
             languageSelect.value = data.language;
-            // Update Monaco language
+            
             const monacoLang = langMap[data.language] || 'javascript';
             monaco.editor.setModelLanguage(editor.getModel(), monacoLang);
 
-            // Show toast
             const toast = document.createElement('div');
             toast.className = 'toast show';
             toast.textContent = 'Shared snippet loaded';
