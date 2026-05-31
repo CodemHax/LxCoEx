@@ -104,10 +104,14 @@ function initMonaco() {
 function initCodeMirror() {
     editorType = 'codemirror';
     document.getElementById('monacoEditor').style.display = 'none';
-    document.getElementById('cmEditor').style.display = 'block';
+
+    // The textarea must be VISIBLE before CodeMirror initialises from it,
+    // otherwise it measures 0 height and the editor is non-interactive.
+    const cmTextarea = document.getElementById('cmEditor');
+    cmTextarea.style.display = 'block';
 
     const isDark = !document.body.classList.contains('light-theme');
-    const cmInstance = CodeMirror.fromTextArea(document.getElementById('cmEditor'), {
+    const cmInstance = CodeMirror.fromTextArea(cmTextarea, {
         lineNumbers: true,
         mode: 'python',
         theme: isDark ? 'monokai' : 'eclipse',
@@ -125,11 +129,18 @@ function initCodeMirror() {
         }
     });
 
-    cmInstance.setSize("100%", "100%");
+    // Use viewport-relative height so the editor has a real pixel size in flex layouts.
+    const editorHeightPx = Math.max(window.innerHeight * 0.4, 200);
+    cmInstance.setSize("100%", editorHeightPx);
+
+    // Force a layout refresh after a tick so all parent sizes are resolved.
+    setTimeout(() => {
+        cmInstance.refresh();
+    }, 50);
 
     editor = {
         getValue: () => cmInstance.getValue(),
-        setValue: (v) => cmInstance.setValue(v),
+        setValue: (v) => { cmInstance.setValue(v); cmInstance.refresh(); },
         setLanguage: (lang) => {
             const mode = cmModeMap[lang] || 'javascript';
             cmInstance.setOption('mode', mode);

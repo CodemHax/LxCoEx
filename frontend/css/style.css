@@ -237,7 +237,7 @@ select:focus {
 .editor-container {
     flex: 1;
     position: relative;
-    overflow: hidden;
+    overflow: auto;
     background: var(--bg-secondary);
 }
 
@@ -255,6 +255,11 @@ select:focus {
     font-size: 14px;
     line-height: 1.6;
     background: transparent;
+}
+
+/* Ensure CodeMirror wrapper fills its container */
+.CodeMirror-wrap {
+    height: 100%;
 }
 
 .cm-s-monokai.CodeMirror {
@@ -559,6 +564,13 @@ body.light-theme .cm-s-eclipse.CodeMirror {
     .editor-container {
         min-height: 40vh;
         height: 40vh;
+        overflow: auto;
+    }
+
+    /* CodeMirror on mobile: use explicit pixel height so it renders correctly */
+    .CodeMirror {
+        height: 40vh !important;
+        min-height: 40vh;
     }
 
     /* ── Stdin input ── */
