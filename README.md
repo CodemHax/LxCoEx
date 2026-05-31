@@ -14,7 +14,7 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 
 - **Multi-language support** – Python, JavaScript, Java, C, and C++
 - **Queued & sync execution** – Run code via a queue or wait for immediate results
-- **Code sharing** – Generate shareable URLs for snippets (now with enhanced clipboard support and fallback)
+- **Code sharing** – Generate shareable URLs for snippets 
 - **Language templates** – Starter templates for each language
 - **Hardened sandbox** – Containerized execution with no network, non-root user, read-only rootfs, and resource limits
 - **Security layer** – Code sanitizer to block obvious dangerous operations before sandbox execution
