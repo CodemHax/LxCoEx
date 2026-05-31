@@ -7,9 +7,7 @@ const runBtn = document.getElementById('runBtn');
 const runBtnText = document.getElementById('runBtnText');
 const themeToggle = document.getElementById('themeToggle');
 
-// Unified editor wrapper — exposes getValue/setValue/setLanguage/setTheme
 let editor = null;
-let editorType = null; // 'monaco' or 'codemirror'
 
 const DEFAULT_CODE = [
     'def greet(name):',
@@ -19,7 +17,6 @@ const DEFAULT_CODE = [
     'print("Happy coding!")'
 ].join('\n');
 
-// Monaco language IDs
 const monacoLangMap = {
     'python': 'python',
     'javascript': 'javascript',
@@ -28,46 +25,28 @@ const monacoLangMap = {
     'cpp': 'cpp'
 };
 
-// CodeMirror mode mapping
-const cmModeMap = {
-    'python': 'python',
-    'javascript': 'javascript',
-    'java': 'text/x-java',
-    'c': 'text/x-csrc',
-    'cpp': 'text/x-c++src'
-};
-
 function isMobile() {
     return window.matchMedia('(max-width: 900px)').matches;
 }
 
-// ── Editor initialisation ─────────────────────────────────────────────
-
 function initEditor() {
-    if (isMobile()) {
-        initCodeMirror();
-    } else {
-        initMonaco();
-    }
+    initMonaco();
 }
 
 function initMonaco() {
-    editorType = 'monaco';
-    document.getElementById('monacoEditor').style.display = 'block';
-    document.getElementById('cmEditor').style.display = 'none';
-
     require.config({
         paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs' }
     });
 
     require(['vs/editor/editor.main'], function () {
         const isDark = !document.body.classList.contains('light-theme');
+        const isMob = window.matchMedia('(max-width: 900px)').matches;
 
         const monacoInstance = monaco.editor.create(document.getElementById('monacoEditor'), {
             value: DEFAULT_CODE,
             language: 'python',
             theme: isDark ? 'vs-dark' : 'vs',
-            fontSize: 14,
+            fontSize: isMob ? 13 : 14,
             fontFamily: '"JetBrains Mono", "Fira Code", monospace',
             fontLigatures: true,
             minimap: { enabled: false },
@@ -98,63 +77,20 @@ function initMonaco() {
         };
 
         postEditorInit();
+        hideMonacoKeyboardBtn();
     });
 }
 
-function initCodeMirror() {
-    editorType = 'codemirror';
-    document.getElementById('monacoEditor').style.display = 'none';
-
-    // The textarea must be VISIBLE before CodeMirror initialises from it,
-    // otherwise it measures 0 height and the editor is non-interactive.
-    const cmTextarea = document.getElementById('cmEditor');
-    cmTextarea.style.display = 'block';
-
-    const isDark = !document.body.classList.contains('light-theme');
-    const cmInstance = CodeMirror.fromTextArea(cmTextarea, {
-        lineNumbers: true,
-        mode: 'python',
-        theme: isDark ? 'monokai' : 'eclipse',
-        indentUnit: 4,
-        indentWithTabs: false,
-        lineWrapping: true,
-        extraKeys: {
-            "Tab": function (cm) {
-                if (cm.somethingSelected()) {
-                    cm.indentSelection("add");
-                } else {
-                    cm.replaceSelection("    ", "end");
-                }
-            }
-        }
+function hideMonacoKeyboardBtn() {
+    const hide = (el) => { if (el) el.style.display = 'none'; };
+    const selectors = ['.show-keyboard', '.keyboard-button'];
+    selectors.forEach(s => document.querySelectorAll(s).forEach(hide));
+    const observer = new MutationObserver(() => {
+        selectors.forEach(s => document.querySelectorAll(s).forEach(hide));
     });
-
-    // Use viewport-relative height so the editor has a real pixel size in flex layouts.
-    const editorHeightPx = Math.max(window.innerHeight * 0.4, 200);
-    cmInstance.setSize("100%", editorHeightPx);
-
-    // Force a layout refresh after a tick so all parent sizes are resolved.
-    setTimeout(() => {
-        cmInstance.refresh();
-    }, 50);
-
-    editor = {
-        getValue: () => cmInstance.getValue(),
-        setValue: (v) => { cmInstance.setValue(v); cmInstance.refresh(); },
-        setLanguage: (lang) => {
-            const mode = cmModeMap[lang] || 'javascript';
-            cmInstance.setOption('mode', mode);
-        },
-        setTheme: (isLight) => {
-            cmInstance.setOption('theme', isLight ? 'eclipse' : 'monokai');
-        },
-        _raw: cmInstance
-    };
-
-    postEditorInit();
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
-// ── UI helpers ────────────────────────────────────────────────────────
 
 function showQueuedStatus() {
     const outputContent = document.getElementById('outputContent');
@@ -346,8 +282,6 @@ function copyCode() {
     }
 }
 
-// ── Code execution ────────────────────────────────────────────────────
-
 async function runCode() {
     const code = editor.getValue();
     const language = document.getElementById('languageSelect').value;
@@ -404,8 +338,6 @@ async function runCode() {
     runBtn.disabled = false;
 }
 
-// ── Code sharing ──────────────────────────────────────────────────────
-
 async function shareCode() {
     const code = editor.getValue();
     const language = document.getElementById('languageSelect').value;
@@ -447,8 +379,6 @@ async function shareCode() {
         shareBtnSpan.textContent = 'Share';
     }
 }
-
-// ── Modals ────────────────────────────────────────────────────────────
 
 function showShareModal(url) {
     const shareModal = document.getElementById('shareModal');
@@ -535,8 +465,6 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// ── Mobile: Back-to-Editor FAB ────────────────────────────────────────
-
 function showBackToEditorBtn() {
     if (isMobile()) {
         document.getElementById('backToEditorBtn')?.classList.add('visible');
@@ -562,8 +490,6 @@ window.addEventListener('scroll', () => {
         hideBackToEditorBtn();
     }
 }, { passive: true });
-
-// ── Server / templates ────────────────────────────────────────────────
 
 function updateServerStatus(connected) {
     const indicator = document.getElementById('serverStatus');
@@ -598,8 +524,6 @@ async function loadTemplate(language) {
     }
 }
 
-// ── Theme ─────────────────────────────────────────────────────────────
-
 function toggleTheme() {
     const body = document.body;
     const isLight = body.classList.toggle('light-theme');
@@ -617,8 +541,6 @@ function loadThemePreference() {
         if (editor) editor.setTheme(true);
     }
 }
-
-// ── Init ──────────────────────────────────────────────────────────────
 
 function init() {
     const savedTheme = localStorage.getItem('theme');

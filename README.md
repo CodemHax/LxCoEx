@@ -2,7 +2,7 @@
 
 LiCoEx is a modern, web‑based code execution platform that lets you write, run, and share code snippets in multiple programming languages, with a polished UI and safe, sandboxed backend.
 
-![LiCoEx](https://img.shields.io/badge/LiCoEx-Code%20Executor-00b8a3)
+![LiCoEx](https://img.shields.io/badge/LiCoEx-Code%20Executor-c8956c)
 ![Python](https://img.shields.io/badge/Python-3.11+-blue)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green)
 ![Monaco](https://img.shields.io/badge/Editor-Monaco-0078d4)
@@ -19,8 +19,8 @@ LiCoEx is a modern, web‑based code execution platform that lets you write, run
 - **Hardened sandbox** – Containerized execution with no network, non-root user, read-only rootfs, and resource limits
 - **Security layer** – Code sanitizer to block obvious dangerous operations before sandbox execution
 - **Rate limiting** – Protects the API from abuse
-- **Monaco Editor** – VS Code's editor engine with syntax highlighting, IntelliSense, multi-cursor, find & replace, and smooth animations
-- **Dark / light theme** – Toggleable UI theme (`vs-dark` / `vs` Monaco themes)
+- **Monaco Editor** – Unified VS Code editor engine for all screen sizes. Features touch-optimized layouts, auto-dismissed mobile floating buttons, syntax highlighting, IntelliSense, multi-cursor, find & replace, and smooth animations.
+- **Warm Beige & Espresso Themes** – Sleek, custom-designed dark and light themes. Toggle between deep warm espresso brown/amber (`vs-dark`) and soft parchment/cream (`vs`) layouts.
 - **Local Persistence** – Code is automatically saved to local storage (Ctrl+S / Cmd+S)
 - **AI error explanation** – Enhanced AI‑based explanations for errors (now more robust and handles multiple response formats)
 

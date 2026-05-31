@@ -1,33 +1,32 @@
 :root {
-    --bg-primary: #1e1e1e;
-    --bg-secondary: #252526;
-    --bg-tertiary: #2d2d2d;
-    --bg-card: #333333;
-    --bg-header: #3d3226;
-    --accent: #00b8a3;
-    --accent-hover: #00d4bb;
-    --accent-glow: rgba(0, 184, 163, 0.3);
-    --success: #00b8a3;
-    --error: #ff6b6b;
-    --warning: #ffa502;
-    --text-primary: #e0e0e0;
-    --text-secondary: #a0a0a0;
-    --text-muted: #6a6a6a;
-    --border: #404040;
-    --border-focus: #00b8a3;
+    --bg-primary: #1c1917;
+    --bg-secondary: #242019;
+    --bg-tertiary: #2c271f;
+    --bg-card: #34302a;
+    --bg-header: #2c271f;
+    --accent: #c8956c;
+    --accent-hover: #d4a87c;
+    --accent-glow: rgba(200, 149, 108, 0.25);
+    --success: #7daa7d;
+    --error: #e07878;
+    --warning: #d4a853;
+    --text-primary: #e8e0d4;
+    --text-secondary: #a89070;
+    --text-muted: #6b5e50;
+    --border: #3a342c;
+    --border-focus: #c8956c;
 }
 
-/* Light Theme Variables */
 body.light-theme {
-    --bg-primary: #f5f5f7;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #f0f0f0;
+    --bg-primary: #f2ece0;
+    --bg-secondary: #faf7f0;
+    --bg-tertiary: #ece5d8;
     --bg-card: #ffffff;
     --bg-header: #ffffff;
-    --text-primary: #333333;
-    --text-secondary: #666666;
-    --text-muted: #888888;
-    --border: #e0e0e0;
+    --text-primary: #2c2318;
+    --text-secondary: #5c4e3a;
+    --text-muted: #8a7a68;
+    --border: #d4c8b0;
 }
 
 * {
@@ -89,7 +88,6 @@ body {
     gap: 1rem;
 }
 
-/* Theme Toggle */
 .btn-theme {
     background: transparent;
     border: 1px solid var(--border);
@@ -248,40 +246,13 @@ select:focus {
     inset: 0;
 }
 
-/* CodeMirror (mobile) */
-.CodeMirror {
-    height: 100% !important;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    line-height: 1.6;
-    background: transparent;
+
+.monaco-editor .keyboard-button,
+.monaco-editor .show-keyboard,
+.show-keyboard {
+    display: none !important;
 }
 
-/* Ensure CodeMirror wrapper fills its container */
-.CodeMirror-wrap {
-    height: 100%;
-}
-
-.cm-s-monokai.CodeMirror {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-}
-
-.cm-s-monokai .CodeMirror-gutters {
-    background-color: var(--bg-tertiary) !important;
-    border-right: 1px solid var(--border) !important;
-}
-
-.cm-s-monokai .CodeMirror-linenumber {
-    color: var(--text-muted) !important;
-}
-
-body.light-theme .cm-s-eclipse.CodeMirror {
-    background-color: var(--bg-secondary) !important;
-    color: var(--text-primary) !important;
-}
-
-/* Toast Notification */
 .toast {
     position: fixed;
     bottom: 24px;
@@ -462,7 +433,6 @@ body.light-theme .cm-s-eclipse.CodeMirror {
 }
 
 @media (max-width: 900px) {
-    /* ── Layout ── */
     .container {
         grid-template-columns: 1fr;
         grid-template-rows: auto auto;
@@ -471,7 +441,6 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         gap: 0;
     }
 
-    /* ── Header: compact ── */
     .header {
         height: 48px;
         padding: 0 0.75rem;
@@ -514,7 +483,6 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         gap: 0.5rem;
     }
 
-    /* ── Panel header: controls wrap below title ── */
     .panel-header {
         flex-wrap: wrap;
         gap: 0.5rem;
@@ -556,24 +524,16 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         min-height: 40px;
     }
 
-    /* ── Editor: proper height ── */
     .panel {
         min-height: auto;
     }
 
     .editor-container {
-        min-height: 40vh;
-        height: 40vh;
-        overflow: auto;
+        min-height: 45vh;
+        height: 45vh;
+        overflow: hidden;
     }
 
-    /* CodeMirror on mobile: use explicit pixel height so it renders correctly */
-    .CodeMirror {
-        height: 40vh !important;
-        min-height: 40vh;
-    }
-
-    /* ── Stdin input ── */
     .input-section {
         border-top: 1px solid var(--border);
     }
@@ -593,7 +553,6 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         font-size: 0.75rem;
     }
 
-    /* ── Output panel ── */
     .output-panel {
         min-height: 40vh;
     }
@@ -639,7 +598,6 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         min-height: 36px;
     }
 
-    /* ── AI explanation ── */
     .ai-explanation-text {
         font-size: 0.8rem;
         padding: 0.6rem;
@@ -656,7 +614,6 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         font-size: 0.8rem;
     }
 
-    /* ── Modals: full-width on mobile ── */
     .modal-content {
         min-width: unset;
         max-width: unset;
@@ -677,7 +634,6 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         font-size: 0.75rem;
     }
 
-    /* ── Empty state ── */
     .empty-state {
         padding: 1.5rem;
     }
@@ -690,14 +646,12 @@ body.light-theme .cm-s-eclipse.CodeMirror {
         font-size: 0.8rem;
     }
 
-    /* ── Toast ── */
     .toast {
         font-size: 0.8rem;
         padding: 8px 16px;
         bottom: 70px;
     }
 
-    /* ── FAB ── */
     .btn-back-to-editor {
         display: flex;
         bottom: 16px;
